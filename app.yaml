@@ -1,0 +1,66 @@
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /css
+  static_dir: application/frontend/assets/css
+  secure: always
+
+- url: /fonts
+  static_dir: application/frontend/assets/fonts
+  secure: always
+
+- url: /img
+  static_dir: application/frontend/assets/img
+  secure: always
+
+- url: /js
+  static_dir: application/frontend/assets/js
+  secure: always
+
+- url: /_ah/queue/deferred
+  script: google.appengine.ext.deferred.deferred.application
+  login: admin
+
+- url: /tasks/.*
+  script: main.app
+  login: admin
+
+- url: /cron/.*
+  script: main.app
+  login: admin
+
+- url: /api/.*
+  script: main.api
+  secure: always
+
+- url: .*
+  script: main.app
+  secure: always
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
+- name: jinja2
+  version: "latest"
+- name: ssl
+  version: latest
+- name: PIL
+  version: "1.1.7"
+
+builtins:
+- deferred: on
+- remote_api: on
+
+error_handlers:
+- file: application/frontend/error_pages/error.html
+
+- error_code: over_quota
+  file: application/frontend/error_pages/over_quota.html
+
+- error_code: dos_api_denial
+  file: application/frontend/error_pages/dos_api_denial.html
+
+- error_code: timeout
+  file: application/frontend/error_pages/timeout.html
