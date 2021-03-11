@@ -39,7 +39,7 @@ class NewsListsApiHandler(BaseHandler):
         elif existing_memcache_data and does_memcache_exceeds_ttl(existing_memcache_data):
             logging.debug("Memcache data exists but timestamp exceeds TTL.")
             should_fetch_from_news_api = True
-        elif existing_memcache_data:
+        elif existing_memcache_data and existing_memcache_data["data"]["articles"]:
             logging.debug("Memcache data for page " + str(page) + " exists.")
             logging.debug("Returning memcache data.")
             should_fetch_from_news_api = False
@@ -71,6 +71,7 @@ class NewsListsApiHandler(BaseHandler):
             else:
                 logging.debug("NewsAPI fetch failed. Response code: ")
                 logging.debug(response.status_code)
+                logging.debug(response.content)
 
                 # If something went wrong while fetching
                 # data from NewsAPI and there's and existing_memcache_data.
@@ -79,6 +80,14 @@ class NewsListsApiHandler(BaseHandler):
                     logging.debug("Memcache data for page " + str(page) + " exists.")
                     logging.debug(existing_memcache_data)
                     self.api_response = existing_memcache_data["data"]
+                    self.api_render()
+                elif response.status_code == 426:
+                    # Reached maximum results from NewsAPI. Return empty list.
+                    self.api_response = {
+                        "status": "ok",
+                        "articles": [],
+                        "totalResults": 0
+                    }
                     self.api_render()
                 else:
                     self.api_response["code"] = 500
